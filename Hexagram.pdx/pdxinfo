@@ -1,0 +1,8 @@
+name=Hexagram
+author=Orllewin
+description=An experimental effect
+bundleID=orllewin.playdate.hexagram
+version=1.0.0
+imagePath=Images/
+pdxversion=11300
+buildtime=733854613
