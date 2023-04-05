@@ -8,17 +8,17 @@ import 'CoracleViews/label_left'
 import 'CoracleViews/hexagram'
 import 'CoracleViews/rotary_encoder_medium'
 import 'AudioOut/droplet'
+import 'AudioOut/bass_droplet'
 import 'AudioIn/source'
 
 playdate.setCrankSoundsDisabled(true)
 
-globalSlots = 7
+globalSlots = 9
 for i=1,globalSlots do
 	if playdate.file.exists("" .. i .. ".pda") then
 		playdate.file.delete("" .. i .. ".pda")
 	end
 end
-
 
 local graphics <const> = playdate.graphics
 local sound <const> = playdate.sound
@@ -35,18 +35,51 @@ graphics.sprite.setBackgroundDrawingCallback(function(x, y, width, height)
 	graphics.fillRect(0, 0, 400, 240)
 end)
 
+-- function trrsState(headphones, mic)
+-- 	print("Headphones in: " .. tostring(headphones))
+-- 	print("Has microphone: " .. tostring(mic))
+-- end
+-- 
+-- local headphones, mic = playdate.sound.getHeadphoneState(function() 
+-- 	local _headphones, _mic = playdate.sound.getHeadphoneState()
+-- 	trrsState(_headphones, _mic)
+-- 	
+-- 	if headphones == true then
+-- 		playdate.sound.setOutputsActive(true, false)
+-- 	else
+-- 		playdate.sound.setOutputsActive(false, true)
+-- 	end
+-- 	
+-- end)
+-- trrsState(headphones, mic)
+
+
 local pixarlmed = graphics.font.new("Fonts/pixarlmed")
 graphics.setFont(pixarlmed)
 
 local pixarlsmol = graphics.font.new("Fonts/pixarl")
 
 local droplets = {}
+local bassDroplets = {}
 
 local dropletCount = 5
+local bassDropletCount = 2
 
 for i=1,dropletCount do
+	print("Adding droplet: " .. i)
 	droplets[i] = Droplet("".. i)
 	droplets[i]:reset()
+end
+
+for i=1,bassDropletCount do
+	print("Adding bass droplet: " .. i)
+	bassDroplets[i] = BassDroplet("".. i)
+	if math.fmod(i, 2) == 0 then
+		bassDroplets[i]:reset(4000)
+	else 
+		bassDroplets[i]:reset()
+	end
+	
 end
 
 -- Effects --------------------------------------------------------------------------------
@@ -105,12 +138,18 @@ function setAttack(attack)
 	for i=1,dropletCount do
 		droplets[i]:setAttack(value)
 	end
+	for i=1,bassDropletCount do
+		bassDroplets[i]:setAttack(value)
+	end
 end
 
 function setRelease(release)
 	globalRelease = release
 	for i=1,dropletCount do
 		droplets[i]:setRelease(value)
+	end
+	for i=1,bassDropletCount do
+		bassDroplets[i]:setRelease(value)
 	end
 end
 
@@ -172,6 +211,7 @@ local encoderWidth = 115
 local yAnchor = 30
 local smallerYSpacing = 46
 
+print("BUILDING UI")
 -- Column 1
 local rateHex = Hexagram(encoderXColumn1 + 90, yAnchor, 35, 0.5)
 local rateEncoder = MediumRotaryEncoder("Trigger", "Rate", encoderXColumn1, yAnchor, encoderWidth, function(value)
@@ -189,6 +229,9 @@ local attackEncoder = MediumRotaryEncoder("Droplet", "Attack", encoderXColumn1, 
 	for i=1,dropletCount do
 		droplets[i]:setAttack(value)
 	end
+	for i=1,bassDropletCount do
+		bassDroplets[i]:setAttack(value)
+	end
 	
 	attackHex:cast(value)
 end)
@@ -201,6 +244,9 @@ local releaseEncoder = MediumRotaryEncoder("Droplet", "Release", encoderXColumn1
 	--release change
 	for i=1,dropletCount do
 		droplets[i]:setRelease(value)
+	end
+	for i=1,bassDropletCount do
+		bassDroplets[i]:setRelease(value)
 	end
 	
 	releaseHex:cast(value)
@@ -282,6 +328,10 @@ logoSprite:add()
 function playdate.update()
 	for i=1,dropletCount do
 		droplets[i]:update()
+	end
+	
+	for i=1,bassDropletCount do
+		bassDroplets[i]:update()
 	end
 	
 	graphics.sprite.update()

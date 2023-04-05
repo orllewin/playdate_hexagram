@@ -2,29 +2,29 @@ import 'CoreLibs/object'
 import 'Coracle/math'
 import 'AudioOut/orl_sample'
 
-class('Droplet').extends()
+class('BassDroplet').extends()
 
-function Droplet:init(label)
-	Droplet.super.init(self)
+function BassDroplet:init(label)
+	BassDroplet.super.init(self)
 	
 	self.label = label
 	
 	self.rate = globalRate
 end
 
-function Droplet:delayRetry()
+function BassDroplet:delayRetry()
 	playdate.timer.performAfterDelay(1000, function() 
 		self:reset()
 	end)
 end
 
-function Droplet:reset()
+function BassDroplet:reset(playDelay)
 	local slot = math.floor(math.random(globalSlots))
 	if playdate.file.exists("" .. slot .. ".pda") == false then
 		self:delayRetry()
 		return
 	end
-	print("Droplet " .. self.label .. " using slot: " .. slot)
+	print("BassDroplet " .. self.label .. " using slot: " .. slot)
 	local sample = playdate.sound.sample.new("" .. slot .. ".pda")
 	local sampleLength, sampleBuffer = sample:getLength()
 	local sampleLengthMs = sampleLength * 1000
@@ -58,66 +58,65 @@ function Droplet:reset()
 	self:setRelease(globalRelease)
 	
 	self:randomise()
-	print("Droplet " .. self.label .. " ready - queueing")
-	self:queuePlayback()
-end
-
-function Droplet:queuePlayback()
-	local futureMs = math.floor(math.random(map(self.rate, 0.0, 1.0, 10000, 3000)))
-	print("Droplet " .. self.label .. " will play in " .. futureMs/1000 .. " seconds")
-	playdate.timer.performAfterDelay(futureMs, function() 
-		print("Droplet " .. self.label .. " play() length: " .. self.orlSample:getSeconds())
+	print("BassDroplet " .. self.label .. " ready - queueing")
+	if playDelay ~= nil then
+		playdate.timer.performAfterDelay(playDelay, function() 
+			self:play()
+		end)
+	else
 		self:play()
-	end)
+	end
 end
 
-function Droplet:play()
-	
+function BassDroplet:play()
+	print("BassDroplet " .. self.label .. " playing")
 	self.orlSample:play(function() 
-		if math.random(100) < 25 then
+		if math.random(100) < 35 then
 			--Change subsample entirely:
 			self:reset()
 		else
 			--Keep subsample but randomise effects/rate
 			self:randomise()
-			self:queuePlayback()
+			self:play()
 		end
 		
 	end)
 end
 
-function Droplet:randomise()
-	local r = math.floor(math.random(6))
+function BassDroplet:randomise()
+	local r = math.floor(math.random(7))
 	if r == 1 then
-		self.orlSample:setRate(1.0)
-	elseif r == 2 then
 		self.orlSample:setRate(0.5)
+	elseif r == 2 then
+		self.orlSample:setRate(0.25)
 	elseif r == 3 then
 		self.orlSample:setRate(0.25)
 	elseif r == 4 then
 		self.orlSample:setRate(-0.25)
 	elseif r == 5 then
-		self.orlSample:setRate(-0.5)
+		self.orlSample:setRate(-0.25)
 	elseif r == 6 then
-		self.orlSample:setRate(-1.0)
+		self.orlSample:setRate(-0.5)
+	else
+		self.orlSample:setRate(-0.5)
 	end
 end
 
-function Droplet:update()
+function BassDroplet:update()
 	if self.orlSample ~= nil then self.orlSample:update() end
 end
  
 --How often the sample triggers
-function Droplet:setRate(rate)
+function BassDroplet:setRate(rate)
 	self.rate = rate
 end
 
-function Droplet:setAttack(attack)
+function BassDroplet:setAttack(attack)
 	if self.orlSample == nil then return end
 	self.orlSample:setAttack(map(attack, 0.0, 1.0, 0, 3000))
 end
 
-function Droplet:setRelease(release)
+function BassDroplet:setRelease(release)
 	if self.orlSample == nil then return end
 	self.orlSample:setRelease(map(release, 0.0, 1.0, 0, 3000))
 end
