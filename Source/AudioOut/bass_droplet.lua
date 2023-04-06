@@ -19,8 +19,9 @@ function BassDroplet:delayRetry()
 end
 
 function BassDroplet:reset(playDelay)
+if playDelay ~= nil then self.playDelay = playDelay end
 	local slot = math.floor(math.random(globalSlots))
-	if playdate.file.exists("" .. slot .. ".pda") == false then
+	if slot == globalRecordSlot or playdate.file.exists("" .. slot .. ".pda") == false then
 		self:delayRetry()
 		return
 	end
@@ -31,8 +32,8 @@ function BassDroplet:reset(playDelay)
 	local sampleRate = playdate.sound.getSampleRate()
 	
 	local randomMidPointMs = math.random(math.floor(sampleLengthMs))
-	local maxWidthMs = sampleLengthMs
-	local widthMs = math.max(2500, math.random(maxWidthMs))
+	local maxWidthMs = math.floor(sampleLengthMs/1.5)
+	local widthMs = math.max(1500, math.random(maxWidthMs))
 		
 	--Ensure subsample is within sample range
 	if randomMidPointMs - widthMs/2 < 0 then
@@ -53,14 +54,18 @@ function BassDroplet:reset(playDelay)
 	--We don't need the parent sample now we have the subsample:
 	sample = nil
 	
+	if self.orlSample ~= nil then
+		self.orlSample:stopAndFree()
+	end
+	
 	self.orlSample = OrlSample(subsample)
 	self:setAttack(globalAttack)
 	self:setRelease(globalRelease)
 	
 	self:randomise()
 	print("BassDroplet " .. self.label .. " ready - queueing")
-	if playDelay ~= nil then
-		playdate.timer.performAfterDelay(playDelay, function() 
+	if self.playDelay ~= nil then
+		playdate.timer.performAfterDelay(self.playDelay, function() 
 			self:play()
 		end)
 	else
@@ -96,7 +101,7 @@ function BassDroplet:randomise()
 	elseif r == 5 then
 		self.orlSample:setRate(-0.25)
 	elseif r == 6 then
-		self.orlSample:setRate(-0.5)
+		self.orlSample:setRate(-0.25)
 	else
 		self.orlSample:setRate(-0.5)
 	end
@@ -108,15 +113,15 @@ end
  
 --How often the sample triggers
 function BassDroplet:setRate(rate)
-	self.rate = rate
+	--self.rate = rate
 end
 
 function BassDroplet:setAttack(attack)
 	if self.orlSample == nil then return end
-	self.orlSample:setAttack(map(attack, 0.0, 1.0, 0, 3000))
+	--self.orlSample:setAttack(map(attack, 0.0, 1.0, 0, 3000))
 end
 
 function BassDroplet:setRelease(release)
 	if self.orlSample == nil then return end
-	self.orlSample:setRelease(map(release, 0.0, 1.0, 0, 3000))
+	--self.orlSample:setRelease(map(release, 0.0, 1.0, 0, 3000))
 end

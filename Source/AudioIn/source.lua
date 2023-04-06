@@ -2,7 +2,6 @@ class('Source').extends()
 
 function Source:init()
 	Source.super.init()
-	self.slot = 0
 	self.recording = false
 end
 
@@ -12,14 +11,14 @@ end
 
 function Source:recordSample()
 	
-	self.slot += 1
-	if self.slot == globalSlots + 1 then
-		self.slot = 1
+	globalRecordSlot += 1
+	if globalRecordSlot == globalSlots + 1 then
+		globalRecordSlot = 1
 	end
 	
-	print("recordSample() to slot " .. self.slot)
+	print("recordSample() to slot " .. globalRecordSlot .. " micLevel: " .. playdate.sound.micinput.getLevel() .. " Source: " .. playdate.sound.micinput.getSource())
 	
-	self.buffer = playdate.sound.sample.new(10, playdate.sound.kFormat16bitMono)
+	self.buffer = playdate.sound.sample.new(6, playdate.sound.kFormat16bitMono)
 	self.recording = true
 	
 	--[[
@@ -28,8 +27,9 @@ function Source:recordSample()
 		toggle a flag instead that's read in the main update loop to record the next subsample
 		in the circular sample buffer
 	--]]
+	
 	playdate.sound.micinput.recordToSample(self.buffer, function(sample)
-		self.buffer:save("" .. self.slot .. ".pda")
+		self.buffer:save("" .. globalRecordSlot .. ".pda")
 		self.recording = false
 	end)
 end

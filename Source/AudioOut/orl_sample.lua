@@ -15,8 +15,8 @@ function OrlSample:init(sample)
 	self.player = playdate.sound.sampleplayer.new(self.sample)
 	self.player:setVolume(1.0)
 	
-	self.attack = 250
-	self.release = 150
+	self.attack = 200
+	self.release = 200
 	self.attackTimer = nil
 	self.attackEasing = playdate.easingFunctions.linear
 	self.attackActive = false
@@ -24,6 +24,12 @@ function OrlSample:init(sample)
 	self.releaseTimer = nil
 	self.releaseEasing = playdate.easingFunctions.linear
 	self.releaseActive = false
+end
+
+function OrlSample:stopAndFree()
+	self.player:stop()
+	self.player = nil
+	self.sample = nil
 end
 
 function OrlSample:play(onFinish)

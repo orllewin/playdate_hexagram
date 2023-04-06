@@ -13,7 +13,10 @@ import 'AudioIn/source'
 
 playdate.setCrankSoundsDisabled(true)
 
-globalSlots = 9
+globalSlots = 3
+globalRecordSlot = 1
+
+
 for i=1,globalSlots do
 	if playdate.file.exists("" .. i .. ".pda") then
 		playdate.file.delete("" .. i .. ".pda")
@@ -52,7 +55,7 @@ end)
 -- 	
 -- end)
 -- trrsState(headphones, mic)
-
+playdate.sound.micinput.startListening()
 
 local pixarlmed = graphics.font.new("Fonts/pixarlmed")
 graphics.setFont(pixarlmed)
@@ -62,8 +65,8 @@ local pixarlsmol = graphics.font.new("Fonts/pixarl")
 local droplets = {}
 local bassDroplets = {}
 
-local dropletCount = 5
-local bassDropletCount = 2
+local dropletCount = 3
+local bassDropletCount = 3
 
 for i=1,dropletCount do
 	print("Adding droplet: " .. i)
@@ -74,11 +77,7 @@ end
 for i=1,bassDropletCount do
 	print("Adding bass droplet: " .. i)
 	bassDroplets[i] = BassDroplet("".. i)
-	if math.fmod(i, 2) == 0 then
-		bassDroplets[i]:reset(4000)
-	else 
-		bassDroplets[i]:reset()
-	end
+	bassDroplets[i]:reset(i*3000)
 	
 end
 
@@ -136,20 +135,20 @@ end
 function setAttack(attack)
 	globalAttack = attack
 	for i=1,dropletCount do
-		droplets[i]:setAttack(value)
+		droplets[i]:setAttack(attack)
 	end
 	for i=1,bassDropletCount do
-		bassDroplets[i]:setAttack(value)
+		bassDroplets[i]:setAttack(attack)
 	end
 end
 
 function setRelease(release)
 	globalRelease = release
 	for i=1,dropletCount do
-		droplets[i]:setRelease(value)
+		droplets[i]:setRelease(release)
 	end
 	for i=1,bassDropletCount do
-		bassDroplets[i]:setRelease(value)
+		bassDroplets[i]:setRelease(release)
 	end
 end
 
@@ -226,13 +225,7 @@ focusManager:addView(rateEncoder, 1)
 local attackHex = Hexagram(encoderXColumn1 + 90, yAnchor + smallerYSpacing, 35, 0.5)
 local attackEncoder = MediumRotaryEncoder("Droplet", "Attack", encoderXColumn1, yAnchor + smallerYSpacing, encoderWidth, function(value)
 	--attack change
-	for i=1,dropletCount do
-		droplets[i]:setAttack(value)
-	end
-	for i=1,bassDropletCount do
-		bassDroplets[i]:setAttack(value)
-	end
-	
+	setAttack(value)
 	attackHex:cast(value)
 end)
 attackEncoder:setValue(globalAttack)
@@ -242,13 +235,7 @@ focusManager:addView(attackEncoder, 2)
 local releaseHex = Hexagram(encoderXColumn1 + 90, yAnchor + (smallerYSpacing * 2), 35, 0.5)
 local releaseEncoder = MediumRotaryEncoder("Droplet", "Release", encoderXColumn1, yAnchor + (smallerYSpacing * 2), encoderWidth, function(value)
 	--release change
-	for i=1,dropletCount do
-		droplets[i]:setRelease(value)
-	end
-	for i=1,bassDropletCount do
-		bassDroplets[i]:setRelease(value)
-	end
-	
+	setRelease(value)
 	releaseHex:cast(value)
 end)
 releaseEncoder:setValue(globalRelease)

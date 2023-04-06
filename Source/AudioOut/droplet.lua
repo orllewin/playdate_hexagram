@@ -20,7 +20,7 @@ end
 
 function Droplet:reset()
 	local slot = math.floor(math.random(globalSlots))
-	if playdate.file.exists("" .. slot .. ".pda") == false then
+	if slot == globalRecordSlot or playdate.file.exists("" .. slot .. ".pda") == false then
 		self:delayRetry()
 		return
 	end
@@ -31,7 +31,7 @@ function Droplet:reset()
 	local sampleRate = playdate.sound.getSampleRate()
 	
 	local randomMidPointMs = math.random(math.floor(sampleLengthMs))
-	local maxWidthMs = sampleLengthMs
+	local maxWidthMs = math.floor(sampleLengthMs/1.5)
 	local widthMs = math.max(2500, math.random(maxWidthMs))
 		
 	--Ensure subsample is within sample range
@@ -53,18 +53,23 @@ function Droplet:reset()
 	--We don't need the parent sample now we have the subsample:
 	sample = nil
 	
+	if self.orlSample ~= nil then
+		self.orlSample:stopAndFree()
+	end
+	
 	self.orlSample = OrlSample(subsample)
 	self:setAttack(globalAttack)
 	self:setRelease(globalRelease)
 	
-	self:randomise()
+	--self:randomise()
 	print("Droplet " .. self.label .. " ready - queueing")
 	self:queuePlayback()
 end
 
 function Droplet:queuePlayback()
-	local futureMs = math.floor(math.random(map(self.rate, 0.0, 1.0, 10000, 3000)))
-	print("Droplet " .. self.label .. " will play in " .. futureMs/1000 .. " seconds")
+	local futureMs = map(self.rate, 0.0, 1.0, 12000, 2250)
+	futureMs = (futureMs/2) + math.random(math.floor(futureMs))
+	print("FutureMs " .. futureMs)
 	playdate.timer.performAfterDelay(futureMs, function() 
 		print("Droplet " .. self.label .. " play() length: " .. self.orlSample:getSeconds())
 		self:play()
@@ -74,6 +79,7 @@ end
 function Droplet:play()
 	
 	self.orlSample:play(function() 
+		--onPlayComplete
 		if math.random(100) < 25 then
 			--Change subsample entirely:
 			self:reset()
@@ -93,9 +99,9 @@ function Droplet:randomise()
 	elseif r == 2 then
 		self.orlSample:setRate(0.5)
 	elseif r == 3 then
-		self.orlSample:setRate(0.25)
+		self.orlSample:setRate(0.5)
 	elseif r == 4 then
-		self.orlSample:setRate(-0.25)
+		self.orlSample:setRate(-0.5)
 	elseif r == 5 then
 		self.orlSample:setRate(-0.5)
 	elseif r == 6 then
@@ -109,6 +115,7 @@ end
  
 --How often the sample triggers
 function Droplet:setRate(rate)
+	print("Setting rate to " .. rate)
 	self.rate = rate
 end
 
